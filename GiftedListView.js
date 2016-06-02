@@ -33,6 +33,7 @@ var GiftedListView = React.createClass({
       customStyles: {},
       initialListSize: 10,
       firstLoader: true,
+      forceUpdate: false,
       pagination: true,
       refreshable: true,
       refreshableColors: undefined,
@@ -59,6 +60,7 @@ var GiftedListView = React.createClass({
     customStyles: React.PropTypes.object,
     initialListSize: React.PropTypes.number,
     firstLoader: React.PropTypes.bool,
+    forceUpdate: React.PropTypes.bool,
     pagination: React.PropTypes.bool,
     refreshable: React.PropTypes.bool,
     refreshableColors: React.PropTypes.array,
@@ -194,6 +196,16 @@ var GiftedListView = React.createClass({
 
   componentDidMount() {
     this.props.onFetch(this._getPage(), this._postRefresh, {firstLoad: true});
+  },
+
+  componentWillReceiveProps() {
+    if (this.props.forceUpdate) {
+      this.setState({
+        isRefreshing: true,
+      });
+      this._setPage(1);
+      this.props.onFetch(this._getPage(), this._postRefresh, {});
+    }
   },
 
   setNativeProps(props) {
