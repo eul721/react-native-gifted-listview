@@ -13,16 +13,12 @@ var {
 
 
 // small helper function which merged two objects into one
-function MergeRecursive(obj1, obj2) {
-  for (var p in obj2) {
-    try {
-      if ( obj2[p].constructor==Object ) {
-        obj1[p] = MergeRecursive(obj1[p], obj2[p]);
-      } else {
-        obj1[p] = obj2[p];
-      }
-    } catch(e) {
-      obj1[p] = obj2[p];
+function MergeRowsWithHeaders(obj1, obj2) {
+  for(var p in obj2){
+    if(obj1[p] instanceof Array && obj1[p] instanceof Array){
+      obj1[p] = obj1[p].concat(obj2[p])
+    } else {
+      obj1[p] = obj2[p]
     }
   }
   return obj1;
@@ -56,8 +52,6 @@ var GiftedListView = React.createClass({
       paginationWaitingView: null,
       emptyView: null,
       renderSeparator: null,
-      rowHasChanged:null,
-      distinctRows:null,
     };
   },
 
@@ -84,9 +78,6 @@ var GiftedListView = React.createClass({
     paginationWaitingView: React.PropTypes.func,
     emptyView: React.PropTypes.func,
     renderSeparator: React.PropTypes.func,
-
-    rowHasChanged:React.PropTypes.func,
-    distinctRows:React.PropTypes.func,
   },
 
   _setPage(page) { this._page = page; },
@@ -181,7 +172,7 @@ var GiftedListView = React.createClass({
     var ds = null;
     if (this.props.withSections === true) {
       ds = new ListView.DataSource({
-        rowHasChanged: this.props.rowHasChanged?this.props.rowHasChanged:(row1, row2) => row1 !== row2,
+        rowHasChanged: (row1, row2) => row1 !== row2,
         sectionHeaderHasChanged: (section1, section2) => section1 !== section2,
       });
       return {
@@ -191,7 +182,7 @@ var GiftedListView = React.createClass({
       };
     } else {
       ds = new ListView.DataSource({
-        rowHasChanged: this.props.rowHasChanged?this.props.rowHasChanged:(row1, row2) => row1 !== row2,
+        rowHasChanged: (row1, row2) => row1 !== row2,
       });
       return {
         dataSource: ds.cloneWithRows(this._getRows()),
@@ -244,15 +235,10 @@ var GiftedListView = React.createClass({
     this._setPage(this._getPage() + 1);
     var mergedRows = null;
     if (this.props.withSections === true) {
-      mergedRows = MergeRecursive(this._getRows(), rows);
+      mergedRows = MergeRowsWithHeaders(this._getRows(), rows);
     } else {
       mergedRows = this._getRows().concat(rows);
     }
-
-    if(this.props.distinctRows){
-      mergedRows = this.props.distinctRows(mergedRows);
-    }
-    
     this._updateRows(mergedRows, options);
   },
 
