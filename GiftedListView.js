@@ -46,6 +46,7 @@ var GiftedListView = React.createClass({
       sectionHeaderView: null,
       scrollEnabled: true,
       withSections: false,
+      autoPaginate: false,
       onFetch(page, callback, options) { callback([]); },
 
       paginationFetchingView: null,
@@ -73,6 +74,7 @@ var GiftedListView = React.createClass({
     sectionHeaderView: React.PropTypes.func,
     scrollEnabled: React.PropTypes.bool,
     withSections: React.PropTypes.bool,
+    autoPaginate: React.PropTypes.bool,
     onFetch: React.PropTypes.func,
 
     paginationFetchingView: React.PropTypes.func,
@@ -166,6 +168,14 @@ var GiftedListView = React.createClass({
       <View style={[this.defaultStyles.separator, this.props.customStyles.separator]} />
     );
   },
+  onEndReached() {
+    if (this.props.autoPaginate) {
+      this._onPaginate();
+    }
+    if (this.props.onEndReached) {
+      this.props.onEndReached();
+    }
+  },
 
   getInitialState() {
     this._setPage(1);
@@ -233,9 +243,9 @@ var GiftedListView = React.createClass({
   },
 
   _onPaginate() {
-    if(this.state.paginationStatus==='allLoaded'){
-      return null
-    }else {
+    if (this.state.paginationStatus === 'firstLoad'
+    || this.state.paginationStatus === 'waiting') {
+
       this.setState({
         paginationStatus: 'fetching',
       });
@@ -324,6 +334,8 @@ var GiftedListView = React.createClass({
         scrollEnabled={this.props.scrollEnabled}
         canCancelContentTouches={true}
         refreshControl={this.props.refreshable === true ? this.renderRefreshControl() : null}
+
+        onEndReached={this.onEndReached}
 
         {...this.props}
 
